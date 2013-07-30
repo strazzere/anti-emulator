@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 
 import android.content.Context;
+import android.telephony.TelephonyManager;
 
 import diff.strazzere.anti.common.Property;
 import diff.strazzere.anti.common.Utilities;
@@ -22,11 +23,11 @@ public class FindEmulator {
 		"15555215554" // Default emulator phone number
 	};
 	
-	private static String[] known_imei = {
+	private static String[] known_imeis = {
 		"012345678912345" // Default emulator imei
 	};
 	
-	private static String[] known_device_id = {
+	private static String[] known_device_ids = {
 		"000000000000000" // Default emulator id
 	};
 	
@@ -170,15 +171,35 @@ public class FindEmulator {
 		return false;
 	}
 	
-	public static boolean hasKnownPhoneNumber() {
+	public static boolean hasKnownPhoneNumber(Context context) {
+		TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+
+		String phoneNumber = telephonyManager.getLine1Number();
+
+		for(String number : known_numbers) {
+			if(number.equalsIgnoreCase(phoneNumber)) {
+				return true;
+			}
+
+		}
 		return false;
 	}
 	
-	public static boolean hasKnownImei() {
+	public static boolean hasKnownDeviceId(Context context) {
+		TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+
+		String deviceId = telephonyManager.getDeviceId();
+
+		for(String known_deviceId : known_device_ids) {
+			if(known_deviceId.equalsIgnoreCase(deviceId)) {
+				return true;
+			}
+
+		}
 		return false;
 	}
 	
-	public static boolean hasKnownDeviceId() {
+	public static boolean hasKnownImei(Context context) {
 		return false;
 	}
 }

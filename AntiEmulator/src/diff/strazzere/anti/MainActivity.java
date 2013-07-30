@@ -28,15 +28,15 @@ public class MainActivity extends Activity {
 
 	public boolean isQEmuEnvDetected() {
 		log("Checking for QEmu env...");
-		log("hasKnownDeviceId : " + FindEmulator.hasKnownDeviceId());
-		log("hasKnownImei : " + FindEmulator.hasKnownImei());
-		log("hasKnownPhoneNumber : " + FindEmulator.hasKnownPhoneNumber());
+		log("hasKnownDeviceId : " + FindEmulator.hasKnownDeviceId(getApplicationContext()));
+		log("hasKnownImei : " + FindEmulator.hasKnownImei(getApplicationContext()));
+		log("hasKnownPhoneNumber : " + FindEmulator.hasKnownPhoneNumber(getApplicationContext()));
 		log("hasPipes : " + FindEmulator.hasPipes());
 		log("hasQEmuDriver : " + FindEmulator.hasQEmuDriver());
 		log("hasQEmuFiles : " + FindEmulator.hasQEmuFiles());
-		if(FindEmulator.hasKnownDeviceId() ||
-				FindEmulator.hasKnownImei() ||
-				FindEmulator.hasKnownPhoneNumber() ||
+		if(FindEmulator.hasKnownDeviceId(getApplicationContext()) ||
+				FindEmulator.hasKnownImei(getApplicationContext()) ||
+				FindEmulator.hasKnownPhoneNumber(getApplicationContext()) ||
 				FindEmulator.hasPipes() ||
 				FindEmulator.hasQEmuDriver() ||
 				FindEmulator.hasQEmuFiles()) {

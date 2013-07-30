@@ -45,8 +45,13 @@ public class Utilities {
 	public static boolean hasPackageNameInstalled(Context context, String packageName) {
 		PackageManager packageManager = context.getPackageManager();
 		
-		// Query package and see if it exists
-		
-		return false;
+		// In theory, if the package installer does not throw an exception, package exists
+		try {
+			packageManager.getInstallerPackageName(packageName);
+			return true;
+		}
+		catch(IllegalArgumentException exception) {
+			return false;
+		}
 	}
 }
