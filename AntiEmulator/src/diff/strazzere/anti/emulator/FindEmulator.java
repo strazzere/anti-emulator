@@ -199,7 +199,27 @@ public class FindEmulator {
 		return false;
 	}
 	
+	public static boolean hasKnownImsi(Context context) {
+		TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+		String imsi = telephonyManager.getSubscriberId();
+		
+		for(String known_imsi : known_imsi_ids) {
+			if(known_imsi.equalsIgnoreCase(imsi)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static boolean isOperatorNameAndroid(Context paramContext) {
+		String szOperatorName = ((TelephonyManager)paramContext.getSystemService("phone")).getNetworkOperatorName(); 
+		boolean isAndroid = szOperatorName.toLowerCase().equals("android");
+		return isAndroid;
+	}
+	/*
+	Can remove this as it's covered under hasKnownDeviceId
 	public static boolean hasKnownImei(Context context) {
 		return false;
 	}
+	*/
 }
