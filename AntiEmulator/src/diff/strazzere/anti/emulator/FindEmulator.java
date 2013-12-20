@@ -20,6 +20,9 @@ public class FindEmulator {
 	
 	// Need to check the format of these
 	// Android emulator support up to 16 concurrent emulator
+	// The console of the first emulator instance running on a given 
+	// machine uses console port 5554
+	// Subsequent instances use port numbers increasing by two
 	private static String[] known_numbers = {
 		"15555215554", // Default emulator phone numbers
 		"15555215556",
