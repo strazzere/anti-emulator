@@ -31,6 +31,10 @@ public class FindEmulator {
 		"000000000000000" // Default emulator id
 	};
 	
+	private static String[] known_imsi_ids = {
+                "310260000000000" // Default imsi id
+        };
+	
 	private static String[] known_pipes = {
 		"/dev/socket/qemud",
 		"/dev/qemu_pipe"
