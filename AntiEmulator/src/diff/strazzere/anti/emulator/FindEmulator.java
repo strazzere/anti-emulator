@@ -19,8 +19,24 @@ import diff.strazzere.anti.common.Utilities;
 public class FindEmulator {
 	
 	// Need to check the format of these
+	// Android emulator support up to 16 concurrent emulator
 	private static String[] known_numbers = {
-		"15555215554" // Default emulator phone number
+		"15555215554", // Default emulator phone numbers
+		"15555215556",
+		"15555215558",
+		"15555215560",
+		"15555215562",
+		"15555215564",
+		"15555215566",
+		"15555215568",
+		"15555215570",
+		"15555215572",
+		"15555215574",
+		"15555215576",
+		"15555215578",
+		"15555215580",
+		"15555215582",
+		"15555215584",
 	};
 	
 	private static String[] known_imeis = {
