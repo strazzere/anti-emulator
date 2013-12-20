@@ -231,6 +231,20 @@ public class FindEmulator {
 		return false;
 	}
 	
+	public static boolean hasEmulatorBuild(Context context) {
+		String BOARD = android.os.Build.BOARD; //The name of the underlying board, like "unknown".    
+		String BOOTLOADER = android.os.Build.BOOTLOADER; //  The system bootloader version number.
+		String BRAND = android.os.Build.BRAND; //The brand (e.g., carrier) the software is customized for, if any. "generic"
+		String DEVICE = android.os.Build.DEVICE; //  The name of the industrial design. "generic"
+		String HARDWARE = android.os.Build.HARDWARE; //The name of the hardware (from the kernel command line or /proc). "goldfish"
+		String MODEL = android.os.Build.MODEL; //The end-user-visible name for the end product. "sdk"
+		String PRODUCT = android.os.Build.PRODUCT; //The name of the overall product.
+		if (BOARD == "unknown" || BOOTLOADER == "unknown" || BRAND == "generic" || DEVICE == "generic" || MODEL == "sdk" || PRODUCT == "sdk" || HARDWARE == "goldfish") {
+			return true;
+		}
+		return false;
+	}
+	
 	public static boolean isOperatorNameAndroid(Context paramContext) {
 		String szOperatorName = ((TelephonyManager)paramContext.getSystemService("phone")).getNetworkOperatorName(); 
 		boolean isAndroid = szOperatorName.toLowerCase().equals("android");
