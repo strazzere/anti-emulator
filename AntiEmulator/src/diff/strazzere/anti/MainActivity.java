@@ -34,12 +34,17 @@ public class MainActivity extends Activity {
 		log("isOperatorNameAndroid : " + FindEmulator.isOperatorNameAndroid(getApplicationContext()));
 		log("hasKnownImsi : " + FindEmulator.hasKnownImsi(getApplicationContext()));
 		log("hasEmulatorBuild:" + FindEmulator.hasEmulatorBuild(getApplicationContext()));
-		
+		log("hasPipes : " + FindEmulator.hasPipes());
+		log("hasQEmuDriver : " + FindEmulator.hasQEmuDriver());
+		log("hasQEmuFiles : " + FindEmulator.hasQEmuFiles());
 	        if(FindEmulator.hasKnownDeviceId(getApplicationContext()) ||
 	        	FindEmulator.hasKnownImei(getApplicationContext()) ||
 	        	FindEmulator.hasKnownImsi(getApplicationContext()) ||
 	        	FindEmulator.hasEmulatorBuild(getApplicationContext()) ||
-	        	FindEmulator.hasKnownPhoneNumber(getApplicationContext())){
+	        	FindEmulator.hasKnownPhoneNumber(getApplicationContext())) ||
+	        	FindEmulator.hasPipes() ||
+			FindEmulator.hasQEmuDriver() ||
+			FindEmulator.hasQEmuFiles()){
 	        	log("QEmu environment detected.");
 	        	return true;
 	        }else{
