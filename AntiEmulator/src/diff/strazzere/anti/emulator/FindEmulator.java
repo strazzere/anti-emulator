@@ -19,8 +19,27 @@ import diff.strazzere.anti.common.Utilities;
 public class FindEmulator {
 	
 	// Need to check the format of these
+	// Android emulator support up to 16 concurrent emulator
+	// The console of the first emulator instance running on a given 
+	// machine uses console port 5554
+	// Subsequent instances use port numbers increasing by two
 	private static String[] known_numbers = {
-		"15555215554" // Default emulator phone number
+		"15555215554", // Default emulator phone numbers
+		"15555215556",
+		"15555215558",
+		"15555215560",
+		"15555215562",
+		"15555215564",
+		"15555215566",
+		"15555215568",
+		"15555215570",
+		"15555215572",
+		"15555215574",
+		"15555215576",
+		"15555215578",
+		"15555215580",
+		"15555215582",
+		"15555215584",
 	};
 	
 	private static String[] known_imeis = {
@@ -30,6 +49,10 @@ public class FindEmulator {
 	private static String[] known_device_ids = {
 		"000000000000000" // Default emulator id
 	};
+	
+	private static String[] known_imsi_ids = {
+                "310260000000000" // Default imsi id
+        };
 	
 	private static String[] known_pipes = {
 		"/dev/socket/qemud",
@@ -199,7 +222,41 @@ public class FindEmulator {
 		return false;
 	}
 	
+	public static boolean hasKnownImsi(Context context) {
+		TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+		String imsi = telephonyManager.getSubscriberId();
+		
+		for(String known_imsi : known_imsi_ids) {
+			if(known_imsi.equalsIgnoreCase(imsi)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static boolean hasEmulatorBuild(Context context) {
+		String BOARD = android.os.Build.BOARD; //The name of the underlying board, like "unknown".    
+		String BOOTLOADER = android.os.Build.BOOTLOADER; //  The system bootloader version number.
+		String BRAND = android.os.Build.BRAND; //The brand (e.g., carrier) the software is customized for, if any. "generic"
+		String DEVICE = android.os.Build.DEVICE; //  The name of the industrial design. "generic"
+		String HARDWARE = android.os.Build.HARDWARE; //The name of the hardware (from the kernel command line or /proc). "goldfish"
+		String MODEL = android.os.Build.MODEL; //The end-user-visible name for the end product. "sdk"
+		String PRODUCT = android.os.Build.PRODUCT; //The name of the overall product.
+		if (BOARD == "unknown" || BOOTLOADER == "unknown" || BRAND == "generic" || DEVICE == "generic" || MODEL == "sdk" || PRODUCT == "sdk" || HARDWARE == "goldfish") {
+			return true;
+		}
+		return false;
+	}
+	
+	public static boolean isOperatorNameAndroid(Context paramContext) {
+		String szOperatorName = ((TelephonyManager)paramContext.getSystemService("phone")).getNetworkOperatorName(); 
+		boolean isAndroid = szOperatorName.toLowerCase().equals("android");
+		return isAndroid;
+	}
+	/*
+	Can remove this as it's covered under hasKnownDeviceId
 	public static boolean hasKnownImei(Context context) {
 		return false;
 	}
+	*/
 }

@@ -31,21 +31,26 @@ public class MainActivity extends Activity {
 		log("hasKnownDeviceId : " + FindEmulator.hasKnownDeviceId(getApplicationContext()));
 		log("hasKnownImei : " + FindEmulator.hasKnownImei(getApplicationContext()));
 		log("hasKnownPhoneNumber : " + FindEmulator.hasKnownPhoneNumber(getApplicationContext()));
+		log("isOperatorNameAndroid : " + FindEmulator.isOperatorNameAndroid(getApplicationContext()));
+		log("hasKnownImsi : " + FindEmulator.hasKnownImsi(getApplicationContext()));
+		log("hasEmulatorBuild:" + FindEmulator.hasEmulatorBuild(getApplicationContext()));
 		log("hasPipes : " + FindEmulator.hasPipes());
 		log("hasQEmuDriver : " + FindEmulator.hasQEmuDriver());
 		log("hasQEmuFiles : " + FindEmulator.hasQEmuFiles());
-		if(FindEmulator.hasKnownDeviceId(getApplicationContext()) ||
-				FindEmulator.hasKnownImei(getApplicationContext()) ||
-				FindEmulator.hasKnownPhoneNumber(getApplicationContext()) ||
-				FindEmulator.hasPipes() ||
-				FindEmulator.hasQEmuDriver() ||
-				FindEmulator.hasQEmuFiles()) {
-			log("QEmu environment detected.");
-			return true;
-		} else {
-			log("QEmu environment not detected.");
-			return false;
-		}
+	        if(FindEmulator.hasKnownDeviceId(getApplicationContext()) ||
+	        	FindEmulator.hasKnownImei(getApplicationContext()) ||
+	        	FindEmulator.hasKnownImsi(getApplicationContext()) ||
+	        	FindEmulator.hasEmulatorBuild(getApplicationContext()) ||
+	        	FindEmulator.hasKnownPhoneNumber(getApplicationContext())) ||
+	        	FindEmulator.hasPipes() ||
+			FindEmulator.hasQEmuDriver() ||
+			FindEmulator.hasQEmuFiles()){
+	        	log("QEmu environment detected.");
+	        	return true;
+	        }else{
+	        	log("QEmu environment not detected.");
+	        	return false;
+	        }
 	}
 
 	public boolean isTaintTrackingDetected() {
