@@ -1,6 +1,7 @@
 package diff.strazzere.anti;
 
 import diff.strazzere.anti.emulator.FindEmulator;
+import diff.strazzere.anti.monkey.FindMonkey;
 import diff.strazzere.anti.taint.FindTaint;
 import android.os.Bundle;
 import android.app.Activity;
@@ -17,6 +18,8 @@ public class MainActivity extends Activity {
 		isQEmuEnvDetected();
 
 		isTaintTrackingDetected();
+
+		isMonkeyDetected();
 	}
 
 	@Override
@@ -65,6 +68,19 @@ public class MainActivity extends Activity {
 			return true;
 		} else {
 			log("Taint tracking was not detected.");
+			return false;
+		}
+	}
+
+	public boolean isMonkeyDetected() {
+		log("Checking for Monkey user...");
+		log("isUserAMonkey : " + FindMonkey.isUserAMonkey());
+
+		if(FindMonkey.isUserAMonkey()) {
+			log("Monkey user was detected.");
+			return true;
+		} else {
+			log("Monkey user was not detected.");
 			return false;
 		}
 	}

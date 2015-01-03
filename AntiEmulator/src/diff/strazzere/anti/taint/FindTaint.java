@@ -3,6 +3,9 @@ package diff.strazzere.anti.taint;
 import java.io.FileDescriptor;
 import java.lang.reflect.Field;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+
 import android.content.Context;
 
 import diff.strazzere.anti.common.Utilities;
@@ -29,7 +32,7 @@ public class FindTaint {
 		}
 		catch (ClassNotFoundException exception) {
 			return false;
-		}		
+		}
 	}
 	
 	/**
@@ -51,6 +54,14 @@ public class FindTaint {
 			// This is normal - no need to do anything here, possibly add logging?
 		}
 		
+		Class cipher = Cipher.class;
+		try {
+			Field key = cipher.getField("key");
+			taintDetected = true;
+		} catch (NoSuchFieldException nsfe) {
+			// This is normal - no need to do anything here, possibly add logging?
+		}
+
 		return taintDetected;
 	}
 	
