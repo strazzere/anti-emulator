@@ -43,14 +43,14 @@ public class MainActivity extends Activity {
         log("hasKnownImsi : " + FindEmulator.hasKnownImsi(getApplicationContext()));
         log("hasEmulatorBuild:" + FindEmulator.hasEmulatorBuild(getApplicationContext()));
         log("hasPipes : " + FindEmulator.hasPipes());
-        log("hasQEmuDriver : " + FindEmulator.hasQEmuDriver());
+        log("hasQEmuDriver : " + FindEmulator.hasQEmuDrivers());
         log("hasQEmuFiles : " + FindEmulator.hasQEmuFiles());
         log("hitsQemuBreakpoint : " + FindEmulator.checkQemuBreakpoint());
         if (FindEmulator.hasKnownDeviceId(getApplicationContext())
                         || FindEmulator.hasKnownImsi(getApplicationContext())
                         || FindEmulator.hasEmulatorBuild(getApplicationContext())
                         || FindEmulator.hasKnownPhoneNumber(getApplicationContext()) || FindEmulator.hasPipes()
-                        || FindEmulator.hasQEmuDriver() || FindEmulator.hasQEmuFiles()) {
+                        || FindEmulator.hasQEmuDrivers() || FindEmulator.hasQEmuFiles()) {
             log("QEmu environment detected.");
             return true;
         } else {

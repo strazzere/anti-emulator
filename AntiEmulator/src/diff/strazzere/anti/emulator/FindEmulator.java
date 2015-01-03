@@ -134,23 +134,24 @@ public class FindEmulator {
      * 
      * @return {@code true} if any known drivers where found to exist or {@code false} if not.
      */
-    public static boolean hasQEmuDriver() {
-        File drivers_file = new File("/proc/tty/drivers");
-        if (drivers_file.exists() && drivers_file.canRead()) {
-            // We don't care to read much past things since info we care about should be inside here
-            byte[] data = new byte[1024];
-            try {
-                InputStream is = new FileInputStream(drivers_file);
-                is.read(data);
-                is.close();
-            } catch (Exception exception) {
-                exception.printStackTrace();
-            }
+    public static boolean hasQEmuDrivers() {
+        for (File drivers_file : new File[] { new File("/proc/tty/drivers"), new File("/proc/cpuinfo") }) {
+            if (drivers_file.exists() && drivers_file.canRead()) {
+                // We don't care to read much past things since info we care about should be inside here
+                byte[] data = new byte[1024];
+                try {
+                    InputStream is = new FileInputStream(drivers_file);
+                    is.read(data);
+                    is.close();
+                } catch (Exception exception) {
+                    exception.printStackTrace();
+                }
 
-            String driver_data = new String(data);
-            for (String known_qemu_driver : FindEmulator.known_qemu_drivers) {
-                if (driver_data.indexOf(known_qemu_driver) != -1) {
-                    return true;
+                String driver_data = new String(data);
+                for (String known_qemu_driver : FindEmulator.known_qemu_drivers) {
+                    if (driver_data.indexOf(known_qemu_driver) != -1) {
+                        return true;
+                    }
                 }
             }
         }
