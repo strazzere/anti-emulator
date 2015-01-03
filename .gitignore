@@ -9,6 +9,8 @@
 *.class
 
 # generated files
+libs/
+obj/
 bin/
 gen/
 build/

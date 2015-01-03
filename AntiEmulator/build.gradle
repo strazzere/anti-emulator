@@ -22,6 +22,7 @@ android {
             renderscript.srcDirs = ['src']
             res.srcDirs = ['res']
             assets.srcDirs = ['assets']
+            jniLibs.srcDirs = ['libs']
         }
 
         debug.setRoot('build-types/debug')
@@ -41,3 +42,15 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }
+
+task ndkBuild(type: Exec, description: "Task to run ndk-build") {
+    commandLine 'ndk-build'
+}
+
+tasks.withType(JavaCompile) { compileTask -> compileTask.dependsOn ndkBuild }
+
+task cleanNative(type: Exec, description: "Task to run ndk-build clean") {
+    commandLine 'ndk-build', 'clean'
+}
+
+clean.dependsOn 'cleanNative'

@@ -15,11 +15,17 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        isQEmuEnvDetected();
+        new Thread() {
+            @Override
+            public void run() {
+                super.run();
+                isTaintTrackingDetected();
 
-        isTaintTrackingDetected();
+                isMonkeyDetected();
 
-        isMonkeyDetected();
+                isQEmuEnvDetected();
+            }
+        }.start();
     }
 
     @Override
@@ -39,6 +45,7 @@ public class MainActivity extends Activity {
         log("hasPipes : " + FindEmulator.hasPipes());
         log("hasQEmuDriver : " + FindEmulator.hasQEmuDriver());
         log("hasQEmuFiles : " + FindEmulator.hasQEmuFiles());
+        log("hitsQemuBreakpoint : " + FindEmulator.checkQemuBreakpoint());
         if (FindEmulator.hasKnownDeviceId(getApplicationContext())
                         || FindEmulator.hasKnownImsi(getApplicationContext())
                         || FindEmulator.hasEmulatorBuild(getApplicationContext())

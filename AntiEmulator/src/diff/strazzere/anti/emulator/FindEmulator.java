@@ -16,6 +16,11 @@ import diff.strazzere.anti.common.Utilities;
  */
 public class FindEmulator {
 
+    static {
+        // This is only valid for arm
+        System.loadLibrary("anti");
+    }
+
     // Need to check the format of these
     // Android emulator support up to 16 concurrent emulator
     // The console of the first emulator instance running on a given
@@ -216,4 +221,18 @@ public class FindEmulator {
         return isAndroid;
     }
 
+    public native static int qemuBkpt();
+
+    public static boolean checkQemuBreakpoint() {
+        boolean hit_breakpoint = false;
+
+        // Potentially you may want to see if this is a specific value
+        int result = qemuBkpt();
+
+        if (result > 0) {
+            hit_breakpoint = true;
+        }
+
+        return hit_breakpoint;
+    }
 }
