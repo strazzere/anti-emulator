@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
+import diff.strazzere.anti.debugger.FindDebugger;
 import diff.strazzere.anti.emulator.FindEmulator;
 import diff.strazzere.anti.monkey.FindMonkey;
 import diff.strazzere.anti.taint.FindTaint;
@@ -22,6 +23,8 @@ public class MainActivity extends Activity {
                 isTaintTrackingDetected();
 
                 isMonkeyDetected();
+
+                isDebugged();
 
                 isQEmuEnvDetected();
 
@@ -86,6 +89,17 @@ public class MainActivity extends Activity {
             return true;
         } else {
             log("Monkey user was not detected.");
+            return false;
+        }
+    }
+
+    public boolean isDebugged() {
+        log("Checking for debuggers...");
+        if (FindDebugger.isBeingDebugged()) {
+            log("Debugger was detected");
+            return true;
+        } else {
+            log("No debugger was detected.");
             return false;
         }
     }

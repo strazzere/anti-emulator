@@ -5,12 +5,21 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
+import android.os.Debug;
+
 /**
  * Class used to determine functionality specific to the Android debuggers
  * 
  * @author tstrazzere
  */
 public class FindDebugger {
+
+    /**
+     * Believe it or not, there are packers that use this...
+     */
+    public static boolean isBeingDebugged() {
+        return Debug.isDebuggerConnected();
+    }
 
     /**
      * This was reversed from a sample someone was submitting to sandboxes for a thesis, can't find paper anymore
