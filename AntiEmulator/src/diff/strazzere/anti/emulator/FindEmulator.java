@@ -132,7 +132,8 @@ public class FindEmulator {
     public static boolean hasQEmuDriver() {
         File drivers_file = new File("/proc/tty/drivers");
         if (drivers_file.exists() && drivers_file.canRead()) {
-            byte[] data = new byte[(int) drivers_file.length()];
+            // We don't care to read much past things since info we care about should be inside here
+            byte[] data = new byte[1024];
             try {
                 InputStream is = new FileInputStream(drivers_file);
                 is.read(data);
@@ -214,4 +215,5 @@ public class FindEmulator {
         boolean isAndroid = szOperatorName.equalsIgnoreCase("android");
         return isAndroid;
     }
+
 }
