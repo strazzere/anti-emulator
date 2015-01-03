@@ -8,6 +8,7 @@ import android.content.Context;
 import android.telephony.TelephonyManager;
 import diff.strazzere.anti.common.Property;
 import diff.strazzere.anti.common.Utilities;
+import diff.strazzere.anti.debugger.FindDebugger;
 
 /**
  * Class used to determine functionality specific to the Android QEmu.
@@ -235,5 +236,9 @@ public class FindEmulator {
         }
 
         return hit_breakpoint;
+    }
+
+    public static boolean hasEmulatorAdb() {
+        return FindDebugger.hasAdbInEmulator();
     }
 }

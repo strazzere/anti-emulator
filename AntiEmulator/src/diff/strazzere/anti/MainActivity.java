@@ -24,6 +24,7 @@ public class MainActivity extends Activity {
                 isMonkeyDetected();
 
                 isQEmuEnvDetected();
+
             }
         }.start();
     }
@@ -45,12 +46,14 @@ public class MainActivity extends Activity {
         log("hasPipes : " + FindEmulator.hasPipes());
         log("hasQEmuDriver : " + FindEmulator.hasQEmuDrivers());
         log("hasQEmuFiles : " + FindEmulator.hasQEmuFiles());
+        log("hasEmulatorAdb :" + FindEmulator.hasEmulatorAdb());
         log("hitsQemuBreakpoint : " + FindEmulator.checkQemuBreakpoint());
         if (FindEmulator.hasKnownDeviceId(getApplicationContext())
                         || FindEmulator.hasKnownImsi(getApplicationContext())
                         || FindEmulator.hasEmulatorBuild(getApplicationContext())
                         || FindEmulator.hasKnownPhoneNumber(getApplicationContext()) || FindEmulator.hasPipes()
-                        || FindEmulator.hasQEmuDrivers() || FindEmulator.hasQEmuFiles()) {
+                        || FindEmulator.hasQEmuDrivers() || FindEmulator.hasEmulatorAdb()
+                        || FindEmulator.hasQEmuFiles()) {
             log("QEmu environment detected.");
             return true;
         } else {
