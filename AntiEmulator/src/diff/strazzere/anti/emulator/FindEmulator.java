@@ -28,7 +28,7 @@ public class FindEmulator {
     // machine uses console port 5554
     // Subsequent instances use port numbers increasing by two
     private static String[] known_numbers = {
-                    "15555215554", // Default emulator phone numbers
+                    "15555215554", // Default emulator phone numbers + VirusTotal
                     "15555215556", "15555215558", "15555215560", "15555215562", "15555215564", "15555215566",
                     "15555215568", "15555215570", "15555215572", "15555215574", "15555215576", "15555215578",
                     "15555215580", "15555215582", "15555215584", };
@@ -210,8 +210,10 @@ public class FindEmulator {
                                                      // /proc). "goldfish"
         String MODEL = android.os.Build.MODEL; // The end-user-visible name for the end product. "sdk"
         String PRODUCT = android.os.Build.PRODUCT; // The name of the overall product.
-        if ((BOARD == "unknown") || (BOOTLOADER == "unknown") || (BRAND == "generic") || (DEVICE == "generic")
-                        || (MODEL == "sdk") || (PRODUCT == "sdk") || (HARDWARE == "goldfish")) {
+        if ((BOARD.compareTo("unknown") == 0) || (BOOTLOADER.compareTo("unknown") == 0)
+                        || (BRAND.compareTo("generic") == 0) || (DEVICE.compareTo("generic") == 0)
+                        || (MODEL.compareTo("sdk") == 0) || (PRODUCT.compareTo("sdk") == 0)
+                        || (HARDWARE.compareTo("goldfish") == 0)) {
             return true;
         }
         return false;
