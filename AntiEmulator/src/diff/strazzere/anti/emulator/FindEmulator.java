@@ -202,7 +202,8 @@ public class FindEmulator {
 
     public static boolean hasEmulatorBuild(Context context) {
         String BOARD = android.os.Build.BOARD; // The name of the underlying board, like "unknown".
-        String BOOTLOADER = android.os.Build.BOOTLOADER; // The system bootloader version number.
+        // This appears to occur often on real hardware... that's sad
+        // String BOOTLOADER = android.os.Build.BOOTLOADER; // The system bootloader version number.
         String BRAND = android.os.Build.BRAND; // The brand (e.g., carrier) the software is customized for, if any.
                                                // "generic"
         String DEVICE = android.os.Build.DEVICE; // The name of the industrial design. "generic"
@@ -210,7 +211,7 @@ public class FindEmulator {
                                                      // /proc). "goldfish"
         String MODEL = android.os.Build.MODEL; // The end-user-visible name for the end product. "sdk"
         String PRODUCT = android.os.Build.PRODUCT; // The name of the overall product.
-        if ((BOARD.compareTo("unknown") == 0) || (BOOTLOADER.compareTo("unknown") == 0)
+        if ((BOARD.compareTo("unknown") == 0) /* || (BOOTLOADER.compareTo("unknown") == 0) */
                         || (BRAND.compareTo("generic") == 0) || (DEVICE.compareTo("generic") == 0)
                         || (MODEL.compareTo("sdk") == 0) || (PRODUCT.compareTo("sdk") == 0)
                         || (HARDWARE.compareTo("goldfish") == 0)) {
@@ -241,6 +242,11 @@ public class FindEmulator {
     }
 
     public static boolean hasEmulatorAdb() {
-        return FindDebugger.hasAdbInEmulator();
+        try {
+            return FindDebugger.hasAdbInEmulator();
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            return false;
+        }
     }
 }

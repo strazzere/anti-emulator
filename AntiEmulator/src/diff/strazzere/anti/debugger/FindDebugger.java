@@ -2,6 +2,7 @@ package diff.strazzere.anti.debugger;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
@@ -14,6 +15,8 @@ import android.os.Debug;
  */
 public class FindDebugger {
 
+    private static String tracerpid = "TracerPid";
+
     /**
      * Believe it or not, there are packers that use this...
      */
@@ -22,13 +25,49 @@ public class FindDebugger {
     }
 
     /**
-     * This was reversed from a sample someone was submitting to sandboxes for a thesis, can't find paper anymore
+     * This is used by Alibaba to detect someone ptracing the application.
+     * 
+     * Easy to circumvent, the usage ITW was a native thread constantly doing this every three seconds - and would cause
+     * the application to crash if it was detected.
+     * 
+     * @return
+     * @throws IOException
      */
-    public static boolean hasAdbInEmulator() {
-        boolean adbInEmulator = false;
+    public static boolean hasTracerPid() throws IOException {
+        BufferedReader reader = null;
         try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream("/proc/net/tcp")),
-                            1000);
+            reader = new BufferedReader(new InputStreamReader(new FileInputStream("/proc/self/status")), 1000);
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                if (line.length() > tracerpid.length()) {
+                    if (line.substring(0, tracerpid.length()).equalsIgnoreCase(tracerpid)) {
+                        if (Integer.decode(line.substring(tracerpid.length() + 1).trim()) > 0) {
+                            return true;
+                        }
+                        break;
+                    }
+                }
+            }
+
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        } finally {
+            reader.close();
+        }
+        return false;
+    }
+
+    /**
+     * This was reversed from a sample someone was submitting to sandboxes for a thesis, can't find paper anymore
+     * 
+     * @throws IOException
+     */
+    public static boolean hasAdbInEmulator() throws IOException {
+        boolean adbInEmulator = false;
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new InputStreamReader(new FileInputStream("/proc/net/tcp")), 1000);
             String line;
             // Skip column names
             reader.readLine();
@@ -60,6 +99,8 @@ public class FindDebugger {
             }
         } catch (Exception exception) {
             exception.printStackTrace();
+        } finally {
+            reader.close();
         }
 
         return adbInEmulator;

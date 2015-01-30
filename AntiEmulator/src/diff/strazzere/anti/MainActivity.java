@@ -95,7 +95,15 @@ public class MainActivity extends Activity {
 
     public boolean isDebugged() {
         log("Checking for debuggers...");
-        if (FindDebugger.isBeingDebugged()) {
+
+        boolean tracer = false;
+        try {
+            tracer = FindDebugger.hasTracerPid();
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+
+        if (FindDebugger.isBeingDebugged() || tracer) {
             log("Debugger was detected");
             return true;
         } else {
