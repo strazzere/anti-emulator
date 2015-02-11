@@ -34,6 +34,7 @@ public class FindEmulator {
                     "15555215580", "15555215582", "15555215584", };
 
     private static String[] known_device_ids = { "000000000000000", // Default emulator id
+						 "e21833235b6eef10", // VirusTotal id
                     "012345678912345" };
 
     private static String[] known_imsi_ids = { "310260000000000" // Default imsi id
