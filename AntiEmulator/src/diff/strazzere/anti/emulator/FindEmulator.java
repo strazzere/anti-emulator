@@ -12,7 +12,7 @@ import diff.strazzere.anti.debugger.FindDebugger;
 
 /**
  * Class used to determine functionality specific to the Android QEmu.
- * 
+ *
  * @author tstrazzere
  */
 public class FindEmulator {
@@ -45,6 +45,8 @@ public class FindEmulator {
     private static String[] known_files = { "/system/lib/libc_malloc_debug_qemu.so", "/sys/qemu_trace",
                     "/system/bin/qemu-props" };
 
+    private static String[] known_geny_files = { "/dev/socket/genyd", "/dev/socket/baseband_genyd" };
+
     private static String[] known_qemu_drivers = { "goldfish" };
 
     /**
@@ -70,7 +72,7 @@ public class FindEmulator {
 
     /**
      * Check the existence of known pipes used by the Android QEmu environment.
-     * 
+     *
      * @return {@code true} if any pipes where found to exist or {@code false} if not.
      */
     public static boolean hasPipes() {
@@ -87,7 +89,7 @@ public class FindEmulator {
     /**
      * Will query specific system properties to try and fingerprint a QEmu environment. A minimum threshold must be met
      * in order to prevent false positives.
-     * 
+     *
      * @param context
      *            A {link Context} object for the Android application.
      * @return {@code true} if enough properties where found to exist or {@code false} if not.
@@ -117,7 +119,7 @@ public class FindEmulator {
 
     /**
      * Check the existence of known files used by the Android QEmu environment.
-     * 
+     *
      * @return {@code true} if any files where found to exist or {@code false} if not.
      */
     public static boolean hasQEmuFiles() {
@@ -132,8 +134,24 @@ public class FindEmulator {
     }
 
     /**
+     * Check the existence of known files used by the Genymotion environment.
+     *
+     * @return {@code true} if any files where found to exist or {@code false} if not.
+     */
+    public static boolean hasGenyFiles() {
+        for (String file : known_geny_files) {
+            File geny_file = new File(file);
+            if (geny_file.exists()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Reads in the driver file, then checks a list for known QEmu drivers.
-     * 
+     *
      * @return {@code true} if any known drivers where found to exist or {@code false} if not.
      */
     public static boolean hasQEmuDrivers() {
