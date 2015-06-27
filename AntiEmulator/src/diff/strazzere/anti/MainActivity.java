@@ -45,7 +45,7 @@ public class MainActivity extends Activity {
         log("hasKnownPhoneNumber : " + FindEmulator.hasKnownPhoneNumber(getApplicationContext()));
         log("isOperatorNameAndroid : " + FindEmulator.isOperatorNameAndroid(getApplicationContext()));
         log("hasKnownImsi : " + FindEmulator.hasKnownImsi(getApplicationContext()));
-        log("hasEmulatorBuild:" + FindEmulator.hasEmulatorBuild(getApplicationContext()));
+        log("hasEmulatorBuild : " + FindEmulator.hasEmulatorBuild(getApplicationContext()));
         log("hasPipes : " + FindEmulator.hasPipes());
         log("hasQEmuDriver : " + FindEmulator.hasQEmuDrivers());
         log("hasQEmuFiles : " + FindEmulator.hasQEmuFiles());
