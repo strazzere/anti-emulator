@@ -109,7 +109,7 @@ public class FindDebugger {
     public static class tcp {
 
         public int id;
-        public int localIp;
+        public long localIp;
         public int localPort;
         public int remoteIp;
         public int remotePort;
@@ -123,7 +123,7 @@ public class FindDebugger {
                         String tx_queue, String rx_queue, String tr, String tm_when, String retrnsmt, String uid,
                         String timeout, String inode) {
             this.id = Integer.parseInt(id, 16);
-            this.localIp = Integer.parseInt(localIp, 16);
+            this.localIp = Long.parseLong(localIp, 16);
             this.localPort = Integer.parseInt(localPort, 16);
         }
     }
