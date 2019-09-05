@@ -2,6 +2,7 @@ package diff.strazzere.anti.emulator;
 
 import android.content.Context;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -144,40 +145,53 @@ public class FindEmulator {
     public static boolean hasKnownPhoneNumber(Context context) {
         TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
 
-        String phoneNumber = telephonyManager.getLine1Number();
+        try {
+            String phoneNumber = telephonyManager.getLine1Number();
+            for (String number : known_numbers) {
+                if (number.equalsIgnoreCase(phoneNumber)) {
+                    return true;
+                }
 
-        for (String number : known_numbers) {
-            if (number.equalsIgnoreCase(phoneNumber)) {
-                return true;
             }
-
+        } catch( SecurityException exception) {
+            log("Unable to request getLine1Number, failing open :" + exception.toString());
         }
+
         return false;
     }
 
     public static boolean hasKnownDeviceId(Context context) {
         TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
 
-        String deviceId = telephonyManager.getDeviceId();
-
-        for (String known_deviceId : known_device_ids) {
-            if (known_deviceId.equalsIgnoreCase(deviceId)) {
-                return true;
+        try {
+            String deviceId = telephonyManager.getDeviceId();
+            for (String known_deviceId : known_device_ids) {
+                if (known_deviceId.equalsIgnoreCase(deviceId)) {
+                    return true;
+                }
             }
-
+        } catch( SecurityException exception) {
+            log("Unable to request getDeviceId, failing open :" + exception.toString());
         }
+
         return false;
     }
 
     public static boolean hasKnownImsi(Context context) {
         TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        String imsi = telephonyManager.getSubscriberId();
 
-        for (String known_imsi : known_imsi_ids) {
-            if (known_imsi.equalsIgnoreCase(imsi)) {
-                return true;
+        try {
+            String imsi = telephonyManager.getSubscriberId();
+
+            for (String known_imsi : known_imsi_ids) {
+                if (known_imsi.equalsIgnoreCase(imsi)) {
+                    return true;
+                }
             }
+        } catch( SecurityException exception) {
+            log("Unable to request getSubscriberId, failing open :" + exception.toString());
         }
+
         return false;
     }
 
@@ -259,5 +273,10 @@ public class FindEmulator {
         }
 
         return false;
+    }
+
+
+    public static void log(String msg) {
+        Log.v("AntiEmu:FindEmulator", msg);
     }
 }
