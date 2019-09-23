@@ -1,12 +1,13 @@
 /*
  * Fun with qemu arm issues
  *
- * <diff@lookout.com>
+ * <diff@protonmail.com>
  */
 
 #include <stdlib.h> // avoid exit warning
 #include <signal.h> // sigtrap stuff, duh
 #include <sys/wait.h> // for waitpid
+#include <unistd.h> // fork() / sleep()
 #include <jni.h>
 
 void handler_sigtrap(int signo) {
@@ -17,7 +18,7 @@ void handler_sigbus(int signo) {
   exit(-1);
 }
 
-int setupSigTrap() {
+void setupSigTrap() {
   // BKPT throws SIGTRAP on nexus 5 / oneplus one (and most devices)
   signal(SIGTRAP, handler_sigtrap);
   // BKPT throws SIGBUS on nexus 4
@@ -25,7 +26,7 @@ int setupSigTrap() {
 }
 
 // This will cause a SIGSEGV on some QEMU or be properly respected
-int tryBKPT() {
+void tryBKPT() {
   __asm__ __volatile__ ("bkpt 255");
 }
 

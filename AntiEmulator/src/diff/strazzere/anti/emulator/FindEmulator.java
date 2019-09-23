@@ -1,6 +1,7 @@
 package diff.strazzere.anti.emulator;
 
 import android.content.Context;
+import android.os.Build;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
@@ -60,8 +61,13 @@ public class FindEmulator {
     private static int MIN_PROPERTIES_THRESHOLD = 0x5;
 
     static {
-        // This is only valid for arm
-        System.loadLibrary("anti");
+        // This is only valid for arm, so gate it
+        for(String abi : Build.SUPPORTED_ABIS) {
+            if(abi.equalsIgnoreCase("armeabi-v7a")) {
+                System.loadLibrary("anti");
+                break;
+            }
+        }
     }
 
     /**

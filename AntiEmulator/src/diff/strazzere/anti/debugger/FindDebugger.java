@@ -63,7 +63,7 @@ public class FindDebugger {
      * 
      * @throws IOException
      */
-    public static boolean hasAdbInEmulator() throws IOException {
+    public static boolean  hasAdbInEmulator() throws IOException {
         boolean adbInEmulator = false;
         BufferedReader reader = null;
         try {

@@ -1,6 +1,7 @@
 package diff.strazzere.anti;
 
 import android.app.Activity;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -51,7 +52,11 @@ public class MainActivity extends Activity {
         log("hasQEmuFiles : " + FindEmulator.hasQEmuFiles());
         log("hasGenyFiles : " + FindEmulator.hasGenyFiles());
         log("hasEmulatorAdb :" + FindEmulator.hasEmulatorAdb());
-        log("hitsQemuBreakpoint : " + FindEmulator.checkQemuBreakpoint());
+        for(String abi : Build.SUPPORTED_ABIS) {
+            if (abi.equalsIgnoreCase("armeabi-v7a")) {
+                log("hitsQemuBreakpoint : " + FindEmulator.checkQemuBreakpoint());
+            }
+        }
         if (FindEmulator.hasKnownDeviceId(getApplicationContext())
                         || FindEmulator.hasKnownImsi(getApplicationContext())
                         || FindEmulator.hasEmulatorBuild(getApplicationContext())

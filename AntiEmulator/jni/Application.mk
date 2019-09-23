@@ -4,6 +4,6 @@ include $(CLEAR_VARS)
 
 APP_ABI := armeabi-v7a
 
-APP_PLATFORM := android-16
+APP_PLATFORM := android-21
 
 include $(BUILD_SHARED_LIBRARY)
