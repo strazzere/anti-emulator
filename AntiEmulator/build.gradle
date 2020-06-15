@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 'android-29'
-    buildToolsVersion '29.0.2'
+    buildToolsVersion '29.0.3'
 
 
     defaultConfig {
@@ -44,13 +44,15 @@ dependencies {
 }
 
 task ndkBuild(type: Exec, description: "Task to run ndk-build") {
-    commandLine 'ndk-build'
+    def ndkDir = android.ndkDirectory.getAbsolutePath()
+    commandLine ndkDir + "/ndk-build"
 }
 
 tasks.withType(JavaCompile) { compileTask -> compileTask.dependsOn ndkBuild }
 
 task cleanNative(type: Exec, description: "Task to run ndk-build clean") {
-    commandLine 'ndk-build', 'clean'
+    def ndkDir = android.ndkDirectory.getAbsolutePath()
+    commandLine ndkDir + '/ndk-build', 'clean'
 }
 
 clean.dependsOn 'cleanNative'
