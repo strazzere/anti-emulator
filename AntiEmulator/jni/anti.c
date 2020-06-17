@@ -26,8 +26,10 @@ void setupSigTrap() {
 }
 
 // This will cause a SIGSEGV on some QEMU or be properly respected
-void tryBKPT() {
-  __asm__ __volatile__ ("bkpt 255");
+void tryBKPT() {  
+  #if defined(__arm__)
+    __asm__ __volatile__ ("bkpt 255");
+  #endif
 }
 
 jint Java_diff_strazzere_anti_emulator_FindEmulator_qemuBkpt(JNIEnv* env, jobject jObject) {
