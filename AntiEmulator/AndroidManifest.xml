@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="diff.strazzere.anti">
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-sdk android:targetSdkVersion="23"/>
-    
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE" tools:ignore="ProtectedPermissions"/>
 
@@ -16,6 +13,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name="diff.strazzere.anti.MainActivity"
+            android:exported="true"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

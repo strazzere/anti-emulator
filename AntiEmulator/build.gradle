@@ -1,58 +1,45 @@
-apply plugin: 'com.android.application'
+plugins {
+    id 'com.android.application'
+}
 
 android {
-    compileSdkVersion 'android-29'
-    buildToolsVersion '29.0.3'
-
+    namespace = 'diff.strazzere.anti'
+    compileSdk = 35
+    ndkVersion = '28.0.12433566'
 
     defaultConfig {
-        applicationId "diff.strazzere.anti"
-        minSdkVersion 21
-        targetSdkVersion 29
-        versionCode 1
-        versionName "1.0"
+        applicationId = "diff.strazzere.anti"
+        minSdk = 21
+        targetSdk = 35
+        versionCode = 1
+        versionName = "1.0"
+
+        // Matches APP_ABI in jni/Application.mk
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a'
+        }
     }
 
+    // Builds jni/anti.c into libanti.so, loaded by FindEmulator
+    externalNativeBuild {
+        ndkBuild {
+            path = 'jni/Android.mk'
+        }
+    }
+
+    // This project predates the standard Android layout
     sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'
             java.srcDirs = ['src']
-            resources.srcDirs = ['src']
-            aidl.srcDirs = ['src']
-            renderscript.srcDirs = ['src']
             res.srcDirs = ['res']
-            assets.srcDirs = ['assets']
-            jniLibs.srcDirs = ['libs']
         }
-
-        debug.setRoot('build-types/debug')
-        release.setRoot('build-types/release')
     }
-
 
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFile getDefaultProguardFile('proguard-android.txt')
+            minifyEnabled = false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
         }
     }
-
 }
-
-dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-}
-
-task ndkBuild(type: Exec, description: "Task to run ndk-build") {
-    def ndkDir = android.ndkDirectory.getAbsolutePath()
-    commandLine ndkDir + "/ndk-build"
-}
-
-tasks.withType(JavaCompile) { compileTask -> compileTask.dependsOn ndkBuild }
-
-task cleanNative(type: Exec, description: "Task to run ndk-build clean") {
-    def ndkDir = android.ndkDirectory.getAbsolutePath()
-    commandLine ndkDir + '/ndk-build', 'clean'
-}
-
-clean.dependsOn 'cleanNative'

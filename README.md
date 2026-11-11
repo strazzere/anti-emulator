@@ -9,7 +9,21 @@ Contents
 --------
 
  - slides/ - Talk slides
- - AntiEmulation/ - Eclipse project and main source of anti* code
+ - AntiEmulator/ - Android app and main source of anti* code (Java in `src/`, the native QEMU check in `jni/`)
+
+Building
+--------
+
+You need a JDK (17 or newer) and the Android SDK, which can be pointed to with the `ANDROID_HOME` environment
+variable or a `local.properties` file containing `sdk.dir=/path/to/Android/Sdk`. The build uses SDK platform 35 and
+NDK 28.0.12433566 (the Android Gradle Plugin downloads them if the SDK licenses have been accepted).
+
+```bash
+./gradlew assembleDebug
+```
+
+The APK is written to `AntiEmulator/build/outputs/apk/debug/`, and can be installed with `adb install`. It is also
+a regular Android Studio project, just open the top level directory.
 
 Disclaimer
 ----------
