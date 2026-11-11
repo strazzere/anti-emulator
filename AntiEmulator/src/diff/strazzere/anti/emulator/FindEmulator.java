@@ -60,11 +60,18 @@ public class FindEmulator {
      */
     private static int MIN_PROPERTIES_THRESHOLD = 0x5;
 
+    private static boolean nativeLoaded = false;
+
     static {
         // This is only valid for arm, so gate it
         for(String abi : Build.SUPPORTED_ABIS) {
             if(abi.equalsIgnoreCase("armeabi-v7a")) {
-                System.loadLibrary("anti");
+                try {
+                    System.loadLibrary("anti");
+                    nativeLoaded = true;
+                } catch (UnsatisfiedLinkError error) {
+                    log("Unable to load the native library, the breakpoint check is unavailable: " + error);
+                }
                 break;
             }
         }
@@ -227,19 +234,32 @@ public class FindEmulator {
         return isAndroid;
     }
 
+    /**
+     * Raises a breakpoint in a forked child process and reports what happened to it, see anti.c.
+     * <ul>
+     * <li>{@code 0}: the child was stopped by the breakpoint, as on real hardware</li>
+     * <li>{@code 1}: the child never finished, {@code 2}: it crashed, {@code 3}: it ran past the breakpoint</li>
+     * <li>{@code -1}: the check failed, {@code -2}: not applicable (anything but 32 bit arm, nothing is forked)</li>
+     * </ul>
+     */
     public native static int qemuBkpt();
 
     public static boolean checkQemuBreakpoint() {
-        boolean hit_breakpoint = false;
-
-        // Potentially you may want to see if this is a specific value
-        int result = qemuBkpt();
-
-        if (result > 0) {
-            hit_breakpoint = true;
+        if (!nativeLoaded) {
+            return false;
         }
 
-        return hit_breakpoint;
+        // Potentially you may want to see if this is a specific value. Negative values are "no result", which is
+        // not evidence of an emulator.
+        int result;
+        try {
+            result = qemuBkpt();
+        } catch (UnsatisfiedLinkError error) {
+            log("Unable to run the breakpoint check: " + error);
+            return false;
+        }
+
+        return result > 0;
     }
 
     public static boolean hasEmulatorAdb() {
