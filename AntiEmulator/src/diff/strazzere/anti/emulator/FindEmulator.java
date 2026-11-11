@@ -37,6 +37,31 @@ public class FindEmulator {
     private static String[] known_files = {"/system/lib/libc_malloc_debug_qemu.so", "/sys/qemu_trace",
             "/system/bin/qemu-props"};
     private static String[] known_geny_files = {"/dev/socket/genyd", "/dev/socket/baseband_genyd"};
+    /**
+     * Files left by the VirtualBox guest additions, which is what Genymotion and AndroVM (and other x86 images) run on.
+     */
+    private static String[] known_vbox_files = {"/dev/vboxguest", "/dev/vboxuser", "/fstab.vbox86",
+            "/init.vbox86.rc", "/ueventd.vbox86.rc", "/system/lib/vboxguest.ko", "/system/lib/vboxsf.ko",
+            "/system/lib/vboxvideo.ko", "/system/xbin/mount.vboxsf", "/system/lib/hw/audio.primary.vbox86.so",
+            "/system/lib/hw/camera.vbox86.so", "/system/lib/hw/gps.vbox86.so", "/system/lib/hw/gralloc.vbox86.so",
+            "/system/lib/hw/sensors.vbox86.so", "/proc/irq/9/vboxguest", "/sys/bus/pci/drivers/vboxguest",
+            "/system/usr/idc/androVM_Virtual_Input.idc", "/system/usr/keylayout/androVM_Virtual_Input.kl"};
+    /**
+     * Files left by BlueStacks and YouWave. The BlueStacks apps and their data are covered by
+     * {@link #known_emulator_packages}, as those paths are not visible to an app.
+     */
+    private static String[] known_desktop_emulator_files = {"/data/youwave_id", "/data/bluestacks.prop",
+            "/mnt/prebundledapps/bluestacks.prop.orig", "/mnt/prebundledapps/propfiles/ics.bluestacks.prop.note",
+            "/mnt/prebundledapps/propfiles/ics.bluestacks.prop.s2",
+            "/mnt/prebundledapps/propfiles/ics.bluestacks.prop.s3",
+            "/mnt/sdcard/bstfolder/InputMapper/com.bluestacks.appmart.cfg",
+            "/mnt/sdcard/windows/InputMapper/com.bluestacks.appmart.cfg",
+            "/mnt/sdcard/buildroid-gapps-ics-20120317-signed.tgz"};
+    private static String[] known_emulator_packages = {"com.bluestacks.accelerometerui", "com.bluestacks.appfinder",
+            "com.bluestacks.appmart", "com.bluestacks.appsettings", "com.bluestacks.BstCommandProcessor",
+            "com.bluestacks.bstfolder", "com.bluestacks.help", "com.bluestacks.home", "com.bluestacks.s2p",
+            "com.bluestacks.searchapp", "com.bluestacks.settings", "com.bluestacks.setup", "com.bluestacks.spotlight",
+            "com.androVM.vmconfig"};
     private static String[] known_qemu_drivers = {"goldfish"};
     /**
      * Known props, in the format of [property name, value to seek] if value to seek is null, then it is assumed that
@@ -81,14 +106,7 @@ public class FindEmulator {
      * @return {@code true} if any pipes where found to exist or {@code false} if not.
      */
     public static boolean hasPipes() {
-        for (String pipe : known_pipes) {
-            File qemu_socket = new File(pipe);
-            if (qemu_socket.exists()) {
-                return true;
-            }
-        }
-
-        return false;
+        return Utilities.anyPathExists(known_pipes);
     }
 
     /**
@@ -97,14 +115,7 @@ public class FindEmulator {
      * @return {@code true} if any files where found to exist or {@code false} if not.
      */
     public static boolean hasQEmuFiles() {
-        for (String pipe : known_files) {
-            File qemu_file = new File(pipe);
-            if (qemu_file.exists()) {
-                return true;
-            }
-        }
-
-        return false;
+        return Utilities.anyPathExists(known_files);
     }
 
     /**
@@ -113,9 +124,28 @@ public class FindEmulator {
      * @return {@code true} if any files where found to exist or {@code false} if not.
      */
     public static boolean hasGenyFiles() {
-        for (String file : known_geny_files) {
-            File geny_file = new File(file);
-            if (geny_file.exists()) {
+        return Utilities.anyPathExists(known_geny_files);
+    }
+
+    /**
+     * Check the existence of known files used by other emulators: VirtualBox based ones (Genymotion, AndroVM), BlueStacks
+     * and YouWave.
+     *
+     * @return {@code true} if any files where found to exist or {@code false} if not.
+     */
+    public static boolean hasOtherEmulatorFiles() {
+        return Utilities.anyPathExists(known_vbox_files) || Utilities.anyPathExists(known_desktop_emulator_files);
+    }
+
+    /**
+     * Check if any packages that belong to other emulators (BlueStacks, AndroVM) are installed. This only finds
+     * what package visibility allows the app to see.
+     *
+     * @return {@code true} if any of the packages are installed or {@code false} if not.
+     */
+    public static boolean hasEmulatorPackages(Context context) {
+        for (String packageName : known_emulator_packages) {
+            if (Utilities.hasPackageNameInstalled(context, packageName)) {
                 return true;
             }
         }
