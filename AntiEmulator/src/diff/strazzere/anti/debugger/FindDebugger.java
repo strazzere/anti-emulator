@@ -1,12 +1,12 @@
 package diff.strazzere.anti.debugger;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 import android.os.Debug;
+import android.util.Log;
+
+import diff.strazzere.anti.common.Utilities;
 
 /**
  * Class used to determine functionality specific to the Android debuggers
@@ -34,26 +34,20 @@ public class FindDebugger {
      * @throws IOException
      */
     public static boolean hasTracerPid() throws IOException {
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new InputStreamReader(new FileInputStream("/proc/self/status")), 1000);
-            String line;
+        String status = Utilities.readFile("/proc/self/status", 8192);
+        if (status == null) {
+            // Not readable, so no evidence
+            return false;
+        }
 
-            while ((line = reader.readLine()) != null) {
-                if (line.length() > tracerpid.length()) {
-                    if (line.substring(0, tracerpid.length()).equalsIgnoreCase(tracerpid)) {
-                        if (Integer.decode(line.substring(tracerpid.length() + 1).trim()) > 0) {
-                            return true;
-                        }
-                        break;
-                    }
+        for (String line : status.split("\n")) {
+            if (line.length() > tracerpid.length() && line.regionMatches(true, 0, tracerpid, 0, tracerpid.length())) {
+                try {
+                    return Integer.decode(line.substring(tracerpid.length() + 1).trim()) > 0;
+                } catch (NumberFormatException exception) {
+                    return false;
                 }
             }
-
-        } catch (Exception exception) {
-            exception.printStackTrace();
-        } finally {
-            reader.close();
         }
         return false;
     }
@@ -63,22 +57,23 @@ public class FindDebugger {
      * 
      * @throws IOException
      */
-    public static boolean  hasAdbInEmulator() throws IOException {
-        boolean adbInEmulator = false;
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new InputStreamReader(new FileInputStream("/proc/net/tcp")), 1000);
-            String line;
-            // Skip column names
-            reader.readLine();
+    public static boolean hasAdbInEmulator() throws IOException {
+        // Newer versions of Android don't let apps read this, which means there is no evidence either way
+        String data = Utilities.readFile("/proc/net/tcp", 1 << 20);
+        if (data == null) {
+            Log.v("AntiEmu:FindDebugger", "Unable to read /proc/net/tcp, not checking for adb");
+            return false;
+        }
 
+        boolean adbInEmulator = false;
+        try {
+            String[] lines = data.split("\n");
             ArrayList<tcp> tcpList = new ArrayList<tcp>();
 
-            while ((line = reader.readLine()) != null) {
-                tcpList.add(tcp.create(line.split("\\W+")));
+            // Skip column names
+            for (int i = 1; i < lines.length; i++) {
+                tcpList.add(tcp.create(lines[i].split("\\W+")));
             }
-
-            reader.close();
 
             // Adb is always bounce to 0.0.0.0 - though the port can change
             // real devices should be != 127.0.0.1
@@ -97,10 +92,8 @@ public class FindDebugger {
                     }
                 }
             }
-        } catch (Exception exception) {
-            exception.printStackTrace();
-        } finally {
-            reader.close();
+        } catch (RuntimeException exception) {
+            Log.v("AntiEmu:FindDebugger", "Unable to parse /proc/net/tcp: " + exception);
         }
 
         return adbInEmulator;

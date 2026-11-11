@@ -6,8 +6,6 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 
 import diff.strazzere.anti.common.Property;
 import diff.strazzere.anti.common.Utilities;
@@ -131,23 +129,17 @@ public class FindEmulator {
      * @return {@code true} if any known drivers where found to exist or {@code false} if not.
      */
     public static boolean hasQEmuDrivers() {
-        for (File drivers_file : new File[]{new File("/proc/tty/drivers"), new File("/proc/cpuinfo")}) {
-            if (drivers_file.exists() && drivers_file.canRead()) {
-                // We don't care to read much past things since info we care about should be inside here
-                byte[] data = new byte[1024];
-                try {
-                    InputStream is = new FileInputStream(drivers_file);
-                    is.read(data);
-                    is.close();
-                } catch (Exception exception) {
-                    exception.printStackTrace();
-                }
+        for (String drivers_file : new String[]{"/proc/tty/drivers", "/proc/cpuinfo"}) {
+            // We don't care to read much past things since info we care about should be inside here
+            String driver_data = Utilities.readFile(drivers_file, 1024);
+            if (driver_data == null) {
+                // Newer versions of Android deny access to some of these, so there is nothing to check
+                continue;
+            }
 
-                String driver_data = new String(data);
-                for (String known_qemu_driver : FindEmulator.known_qemu_drivers) {
-                    if (driver_data.indexOf(known_qemu_driver) != -1) {
-                        return true;
-                    }
+            for (String known_qemu_driver : FindEmulator.known_qemu_drivers) {
+                if (driver_data.indexOf(known_qemu_driver) != -1) {
+                    return true;
                 }
             }
         }
