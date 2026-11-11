@@ -27,13 +27,21 @@ android {
         }
     }
 
-    // This project predates the standard Android layout
+    // This project predates the standard Android layout. All of src/ is the main source root, so the unit tests
+    // have to live outside of it
     sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'
             java.srcDirs = ['src']
             res.srcDirs = ['res']
         }
+        test {
+            java.srcDirs = ['test']
+        }
+    }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
     }
 
     buildTypes {
@@ -42,4 +50,8 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
         }
     }
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13.2'
 }
