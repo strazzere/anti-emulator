@@ -6,8 +6,6 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 
 import diff.strazzere.anti.common.Property;
 import diff.strazzere.anti.common.Utilities;
@@ -39,6 +37,31 @@ public class FindEmulator {
     private static String[] known_files = {"/system/lib/libc_malloc_debug_qemu.so", "/sys/qemu_trace",
             "/system/bin/qemu-props"};
     private static String[] known_geny_files = {"/dev/socket/genyd", "/dev/socket/baseband_genyd"};
+    /**
+     * Files left by the VirtualBox guest additions, which is what Genymotion and AndroVM (and other x86 images) run on.
+     */
+    private static String[] known_vbox_files = {"/dev/vboxguest", "/dev/vboxuser", "/fstab.vbox86",
+            "/init.vbox86.rc", "/ueventd.vbox86.rc", "/system/lib/vboxguest.ko", "/system/lib/vboxsf.ko",
+            "/system/lib/vboxvideo.ko", "/system/xbin/mount.vboxsf", "/system/lib/hw/audio.primary.vbox86.so",
+            "/system/lib/hw/camera.vbox86.so", "/system/lib/hw/gps.vbox86.so", "/system/lib/hw/gralloc.vbox86.so",
+            "/system/lib/hw/sensors.vbox86.so", "/proc/irq/9/vboxguest", "/sys/bus/pci/drivers/vboxguest",
+            "/system/usr/idc/androVM_Virtual_Input.idc", "/system/usr/keylayout/androVM_Virtual_Input.kl"};
+    /**
+     * Files left by BlueStacks and YouWave. The BlueStacks apps and their data are covered by
+     * {@link #known_emulator_packages}, as those paths are not visible to an app.
+     */
+    private static String[] known_desktop_emulator_files = {"/data/youwave_id", "/data/bluestacks.prop",
+            "/mnt/prebundledapps/bluestacks.prop.orig", "/mnt/prebundledapps/propfiles/ics.bluestacks.prop.note",
+            "/mnt/prebundledapps/propfiles/ics.bluestacks.prop.s2",
+            "/mnt/prebundledapps/propfiles/ics.bluestacks.prop.s3",
+            "/mnt/sdcard/bstfolder/InputMapper/com.bluestacks.appmart.cfg",
+            "/mnt/sdcard/windows/InputMapper/com.bluestacks.appmart.cfg",
+            "/mnt/sdcard/buildroid-gapps-ics-20120317-signed.tgz"};
+    private static String[] known_emulator_packages = {"com.bluestacks.accelerometerui", "com.bluestacks.appfinder",
+            "com.bluestacks.appmart", "com.bluestacks.appsettings", "com.bluestacks.BstCommandProcessor",
+            "com.bluestacks.bstfolder", "com.bluestacks.help", "com.bluestacks.home", "com.bluestacks.s2p",
+            "com.bluestacks.searchapp", "com.bluestacks.settings", "com.bluestacks.setup", "com.bluestacks.spotlight",
+            "com.androVM.vmconfig"};
     private static String[] known_qemu_drivers = {"goldfish"};
     /**
      * Known props, in the format of [property name, value to seek] if value to seek is null, then it is assumed that
@@ -60,11 +83,18 @@ public class FindEmulator {
      */
     private static int MIN_PROPERTIES_THRESHOLD = 0x5;
 
+    private static boolean nativeLoaded = false;
+
     static {
         // This is only valid for arm, so gate it
         for(String abi : Build.SUPPORTED_ABIS) {
             if(abi.equalsIgnoreCase("armeabi-v7a")) {
-                System.loadLibrary("anti");
+                try {
+                    System.loadLibrary("anti");
+                    nativeLoaded = true;
+                } catch (UnsatisfiedLinkError error) {
+                    log("Unable to load the native library, the breakpoint check is unavailable: " + error);
+                }
                 break;
             }
         }
@@ -76,14 +106,7 @@ public class FindEmulator {
      * @return {@code true} if any pipes where found to exist or {@code false} if not.
      */
     public static boolean hasPipes() {
-        for (String pipe : known_pipes) {
-            File qemu_socket = new File(pipe);
-            if (qemu_socket.exists()) {
-                return true;
-            }
-        }
-
-        return false;
+        return Utilities.anyPathExists(known_pipes);
     }
 
     /**
@@ -92,14 +115,7 @@ public class FindEmulator {
      * @return {@code true} if any files where found to exist or {@code false} if not.
      */
     public static boolean hasQEmuFiles() {
-        for (String pipe : known_files) {
-            File qemu_file = new File(pipe);
-            if (qemu_file.exists()) {
-                return true;
-            }
-        }
-
-        return false;
+        return Utilities.anyPathExists(known_files);
     }
 
     /**
@@ -108,9 +124,28 @@ public class FindEmulator {
      * @return {@code true} if any files where found to exist or {@code false} if not.
      */
     public static boolean hasGenyFiles() {
-        for (String file : known_geny_files) {
-            File geny_file = new File(file);
-            if (geny_file.exists()) {
+        return Utilities.anyPathExists(known_geny_files);
+    }
+
+    /**
+     * Check the existence of known files used by other emulators: VirtualBox based ones (Genymotion, AndroVM), BlueStacks
+     * and YouWave.
+     *
+     * @return {@code true} if any files where found to exist or {@code false} if not.
+     */
+    public static boolean hasOtherEmulatorFiles() {
+        return Utilities.anyPathExists(known_vbox_files) || Utilities.anyPathExists(known_desktop_emulator_files);
+    }
+
+    /**
+     * Check if any packages that belong to other emulators (BlueStacks, AndroVM) are installed. This only finds
+     * what package visibility allows the app to see.
+     *
+     * @return {@code true} if any of the packages are installed or {@code false} if not.
+     */
+    public static boolean hasEmulatorPackages(Context context) {
+        for (String packageName : known_emulator_packages) {
+            if (Utilities.hasPackageNameInstalled(context, packageName)) {
                 return true;
             }
         }
@@ -124,23 +159,17 @@ public class FindEmulator {
      * @return {@code true} if any known drivers where found to exist or {@code false} if not.
      */
     public static boolean hasQEmuDrivers() {
-        for (File drivers_file : new File[]{new File("/proc/tty/drivers"), new File("/proc/cpuinfo")}) {
-            if (drivers_file.exists() && drivers_file.canRead()) {
-                // We don't care to read much past things since info we care about should be inside here
-                byte[] data = new byte[1024];
-                try {
-                    InputStream is = new FileInputStream(drivers_file);
-                    is.read(data);
-                    is.close();
-                } catch (Exception exception) {
-                    exception.printStackTrace();
-                }
+        for (String drivers_file : new String[]{"/proc/tty/drivers", "/proc/cpuinfo"}) {
+            // We don't care to read much past things since info we care about should be inside here
+            String driver_data = Utilities.readFile(drivers_file, 1024);
+            if (driver_data == null) {
+                // Newer versions of Android deny access to some of these, so there is nothing to check
+                continue;
+            }
 
-                String driver_data = new String(data);
-                for (String known_qemu_driver : FindEmulator.known_qemu_drivers) {
-                    if (driver_data.indexOf(known_qemu_driver) != -1) {
-                        return true;
-                    }
+            for (String known_qemu_driver : FindEmulator.known_qemu_drivers) {
+                if (driver_data.indexOf(known_qemu_driver) != -1) {
+                    return true;
                 }
             }
         }
@@ -227,19 +256,32 @@ public class FindEmulator {
         return isAndroid;
     }
 
+    /**
+     * Raises a breakpoint in a forked child process and reports what happened to it, see anti.c.
+     * <ul>
+     * <li>{@code 0}: the child was stopped by the breakpoint, as on real hardware</li>
+     * <li>{@code 1}: the child never finished, {@code 2}: it crashed, {@code 3}: it ran past the breakpoint</li>
+     * <li>{@code -1}: the check failed, {@code -2}: not applicable (anything but 32 bit arm, nothing is forked)</li>
+     * </ul>
+     */
     public native static int qemuBkpt();
 
     public static boolean checkQemuBreakpoint() {
-        boolean hit_breakpoint = false;
-
-        // Potentially you may want to see if this is a specific value
-        int result = qemuBkpt();
-
-        if (result > 0) {
-            hit_breakpoint = true;
+        if (!nativeLoaded) {
+            return false;
         }
 
-        return hit_breakpoint;
+        // Potentially you may want to see if this is a specific value. Negative values are "no result", which is
+        // not evidence of an emulator.
+        int result;
+        try {
+            result = qemuBkpt();
+        } catch (UnsatisfiedLinkError error) {
+            log("Unable to run the breakpoint check: " + error);
+            return false;
+        }
+
+        return result > 0;
     }
 
     public static boolean hasEmulatorAdb() {

@@ -51,6 +51,8 @@ public class MainActivity extends Activity {
         log("hasQEmuDriver : " + FindEmulator.hasQEmuDrivers());
         log("hasQEmuFiles : " + FindEmulator.hasQEmuFiles());
         log("hasGenyFiles : " + FindEmulator.hasGenyFiles());
+        log("hasOtherEmulatorFiles : " + FindEmulator.hasOtherEmulatorFiles());
+        log("hasEmulatorPackages : " + FindEmulator.hasEmulatorPackages(getApplicationContext()));
         log("hasEmulatorAdb :" + FindEmulator.hasEmulatorAdb());
         for(String abi : Build.SUPPORTED_ABIS) {
             if (abi.equalsIgnoreCase("armeabi-v7a")) {
@@ -63,7 +65,9 @@ public class MainActivity extends Activity {
                         || FindEmulator.hasKnownPhoneNumber(getApplicationContext()) || FindEmulator.hasPipes()
                         || FindEmulator.hasQEmuDrivers() || FindEmulator.hasEmulatorAdb()
                         || FindEmulator.hasQEmuFiles()
-                        || FindEmulator.hasGenyFiles()) {
+                        || FindEmulator.hasGenyFiles()
+                        || FindEmulator.hasOtherEmulatorFiles()
+                        || FindEmulator.hasEmulatorPackages(getApplicationContext())) {
             log("QEmu environment detected.");
             return true;
         } else {

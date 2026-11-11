@@ -1,12 +1,12 @@
 package diff.strazzere.anti.debugger;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 import android.os.Debug;
+import android.util.Log;
+
+import diff.strazzere.anti.common.Utilities;
 
 /**
  * Class used to determine functionality specific to the Android debuggers
@@ -34,97 +34,134 @@ public class FindDebugger {
      * @throws IOException
      */
     public static boolean hasTracerPid() throws IOException {
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new InputStreamReader(new FileInputStream("/proc/self/status")), 1000);
-            String line;
+        String status = Utilities.readFile("/proc/self/status", 8192);
+        if (status == null) {
+            // Not readable, so no evidence
+            return false;
+        }
 
-            while ((line = reader.readLine()) != null) {
-                if (line.length() > tracerpid.length()) {
-                    if (line.substring(0, tracerpid.length()).equalsIgnoreCase(tracerpid)) {
-                        if (Integer.decode(line.substring(tracerpid.length() + 1).trim()) > 0) {
-                            return true;
-                        }
-                        break;
-                    }
+        for (String line : status.split("\n")) {
+            if (line.length() > tracerpid.length() && line.regionMatches(true, 0, tracerpid, 0, tracerpid.length())) {
+                try {
+                    return Integer.decode(line.substring(tracerpid.length() + 1).trim()) > 0;
+                } catch (NumberFormatException exception) {
+                    return false;
                 }
             }
-
-        } catch (Exception exception) {
-            exception.printStackTrace();
-        } finally {
-            reader.close();
         }
         return false;
     }
 
+    /** The state of a listening socket in /proc/net/tcp */
+    private static final int TCP_LISTEN = 0x0A;
+    /** The state of a connected socket in /proc/net/tcp */
+    private static final int TCP_ESTABLISHED = 0x01;
+    /** 10.0.2.2, the host as seen from inside the Android emulator's default (user mode) network, as in /proc/net/tcp */
+    private static final long EMULATOR_HOST_ADDRESS = 0x0202000AL;
+
     /**
      * This was reversed from a sample someone was submitting to sandboxes for a thesis, can't find paper anymore
+     * <p>
+     * Looks for adb being connected to from the emulator's host. See {@link #isConnectedFromEmulatorHost(String)}.
      * 
      * @throws IOException
      */
-    public static boolean  hasAdbInEmulator() throws IOException {
-        boolean adbInEmulator = false;
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new InputStreamReader(new FileInputStream("/proc/net/tcp")), 1000);
-            String line;
-            // Skip column names
-            reader.readLine();
-
-            ArrayList<tcp> tcpList = new ArrayList<tcp>();
-
-            while ((line = reader.readLine()) != null) {
-                tcpList.add(tcp.create(line.split("\\W+")));
-            }
-
-            reader.close();
-
-            // Adb is always bounce to 0.0.0.0 - though the port can change
-            // real devices should be != 127.0.0.1
-            int adbPort = -1;
-            for (tcp tcpItem : tcpList) {
-                if (tcpItem.localIp == 0) {
-                    adbPort = tcpItem.localPort;
-                    break;
-                }
-            }
-
-            if (adbPort != -1) {
-                for (tcp tcpItem : tcpList) {
-                    if ((tcpItem.localIp != 0) && (tcpItem.localPort == adbPort)) {
-                        adbInEmulator = true;
-                    }
-                }
-            }
-        } catch (Exception exception) {
-            exception.printStackTrace();
-        } finally {
-            reader.close();
+    public static boolean hasAdbInEmulator() throws IOException {
+        // Newer versions of Android don't let apps read this, which means there is no evidence either way
+        String data = Utilities.readFile("/proc/net/tcp", 1 << 20);
+        if (data == null) {
+            Log.v("AntiEmu:FindDebugger", "Unable to read /proc/net/tcp, not checking for adb");
+            return false;
         }
 
-        return adbInEmulator;
+        return isConnectedFromEmulatorHost(data);
     }
 
-    public static class tcp {
-
-        public int id;
-        public long localIp;
-        public int localPort;
-        public int remoteIp;
-        public int remotePort;
-
-        static tcp create(String[] params) {
-            return new tcp(params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8],
-                            params[9], params[10], params[11], params[12], params[13], params[14]);
+    /**
+     * Checks the contents of {@code /proc/net/tcp} for a connection to a listening port (adb, which listens on
+     * 0.0.0.0, when it is used over tcp) that comes from {@code 10.0.2.2}.
+     * <p>
+     * In the emulator the host is what connects to adb, and its connections always come from that address. This used
+     * to flag any connection to the listening port, which also matched a real device being debugged with
+     * {@code adb tcpip}, since a client on the local network connects the same way - just not from 10.0.2.2.
+     *
+     * @param procNetTcp
+     *            The contents of {@code /proc/net/tcp}.
+     * @return {@code true} if such a connection was found.
+     */
+    public static boolean isConnectedFromEmulatorHost(String procNetTcp) {
+        if (procNetTcp == null) {
+            return false;
         }
 
-        public tcp(String id, String localIp, String localPort, String remoteIp, String remotePort, String state,
-                        String tx_queue, String rx_queue, String tr, String tm_when, String retrnsmt, String uid,
-                        String timeout, String inode) {
-            this.id = Integer.parseInt(id, 16);
-            this.localIp = Long.parseLong(localIp, 16);
-            this.localPort = Integer.parseInt(localPort, 16);
+        ArrayList<tcp> sockets = new ArrayList<tcp>();
+        // The first line is the column names
+        String[] lines = procNetTcp.split("\n");
+        for (int i = 1; i < lines.length; i++) {
+            tcp socket = tcp.parse(lines[i]);
+            if (socket != null) {
+                sockets.add(socket);
+            }
+        }
+
+        for (tcp listening : sockets) {
+            // Adb is always bound to 0.0.0.0 - though the port can change
+            if (listening.state != TCP_LISTEN || listening.localIp != 0) {
+                continue;
+            }
+
+            for (tcp connection : sockets) {
+                if (connection.state == TCP_ESTABLISHED && connection.localPort == listening.localPort
+                                && connection.remoteIp == EMULATOR_HOST_ADDRESS) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * A single line of {@code /proc/net/tcp}, for example:
+     * {@code 2: 2901A8C0:15B3 5E01A8C0:889E 01 00000018:00000000 01:00000014 00000000  2000 0 109277 ...}
+     * where the addresses are {@code ip:port} in hex and the ip is in network byte order printed as a little endian
+     * number (so 10.0.2.2 is 0202000A).
+     */
+    public static class tcp {
+
+        public long localIp;
+        public int localPort;
+        public long remoteIp;
+        public int remotePort;
+        public int state;
+
+        /**
+         * @return the socket, or {@code null} if the line isn't in the expected format.
+         */
+        static tcp parse(String line) {
+            // sl, local_address, rem_address, st, ...
+            String[] fields = line.trim().split("\\s+");
+            if (fields.length < 4) {
+                return null;
+            }
+
+            try {
+                String[] local = fields[1].split(":");
+                String[] remote = fields[2].split(":");
+                if (local.length != 2 || remote.length != 2) {
+                    return null;
+                }
+
+                tcp socket = new tcp();
+                socket.localIp = Long.parseLong(local[0], 16);
+                socket.localPort = Integer.parseInt(local[1], 16);
+                socket.remoteIp = Long.parseLong(remote[0], 16);
+                socket.remotePort = Integer.parseInt(remote[1], 16);
+                socket.state = Integer.parseInt(fields[3], 16);
+                return socket;
+            } catch (NumberFormatException exception) {
+                return null;
+            }
         }
     }
 }
